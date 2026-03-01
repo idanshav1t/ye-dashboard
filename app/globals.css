@@ -2,33 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap');
 
 * {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
-body {
+html, body {
   background: #0D0D0D;
   color: white;
   font-family: 'Sora', sans-serif;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  touch-action: manipulation;
+}
+
+/* iPhone safe areas */
+@supports (padding: env(safe-area-inset-top)) {
+  .safe-area-top { padding-top: env(safe-area-inset-top); }
+  .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+}
+
+/* Hide scrollbar but keep functionality */
+::-webkit-scrollbar { display: none; }
+* { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Touch optimizations */
+button, input, textarea {
+  font-size: 16px; /* Prevents iOS zoom on focus */
+  -webkit-appearance: none;
+  border-radius: 0;
 }
 
 input, textarea {
   font-family: 'Sora', sans-serif;
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #1F1F1F;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 3px;
+/* PWA standalone mode */
+@supports (display: standalone) {
+  body {
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
 }
