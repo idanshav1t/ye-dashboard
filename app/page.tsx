@@ -21,36 +21,11 @@ const skills = [
 ]
 
 const permissions = [
-  { 
-    name: 'Control Blender', 
-    status: 'needs_local', 
-    desc: 'Requires OpenClaw on your machine',
-    howTo: 'Install OpenClaw locally: curl -fsSL https://openclaw.ai/install.sh | bash'
-  },
-  { 
-    name: 'Browser Control', 
-    status: 'needs_extension', 
-    desc: 'Chrome extension not connected',
-    howTo: 'Install "OpenClaw Browser Relay" in Chrome, configure port 18789, token 7ba0b6ed8016cf8ce4e69aee165efe7750005583e8832426'
-  },
-  { 
-    name: 'Calendar', 
-    status: 'needs_reauth', 
-    desc: 'OAuth scopes expired',
-    howTo: 'Send me "reconnect calendar" and I will guide you through re-authenticating'
-  },
-  { 
-    name: 'Drive', 
-    status: 'available', 
-    desc: 'Can access if needed',
-    howTo: 'Just ask me to access Drive and I can do it'
-  },
-  { 
-    name: 'Web Search', 
-    status: 'needs_api', 
-    desc: 'Brave Search API not connected',
-    howTo: 'Get free API at brave.com/search/api ($5/month, 1000 searches free)'
-  },
+  { name: 'Control Blender', status: 'needs_local', desc: 'Requires OpenClaw on your machine' },
+  { name: 'Browser Control', status: 'needs_extension', desc: 'Chrome extension not connected' },
+  { name: 'Calendar', status: 'needs_reauth', desc: 'OAuth scopes expired' },
+  { name: 'Drive', status: 'available', desc: 'Can access if needed' },
+  { name: 'Web Search', status: 'needs_api', desc: 'Brave Search API not connected' },
 ]
 
 const memory = [
@@ -68,7 +43,6 @@ export default function Dashboard() {
   const [emailBody, setEmailBody] = useState('')
   const [sending, setSending] = useState(false)
   const [response, setResponse] = useState('')
-  const [selectedPerm, setSelectedPerm] = useState<string | null>(null)
   const [addingTask, setAddingTask] = useState(false)
 
   useEffect(() => {
@@ -114,16 +88,10 @@ export default function Dashboard() {
 
   const handleAddTask = async () => {
     setAddingTask(true)
-    // Send task creation request to API which will notify the user
     await fetch('/api/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        name: 'New Task Request',
-        time: '00:00',
-        frequency: 'daily',
-        status: 'pending'
-      })
+      body: JSON.stringify({ name: 'New Task', time: '00:00', frequency: 'daily' })
     })
     setAddingTask(false)
   }
@@ -269,29 +237,18 @@ export default function Dashboard() {
             <h2 className="text-xl font-bold mb-4">Permissions</h2>
             <div className="space-y-2">
               {permissions.map(perm => (
-                <div key={perm.name}>
-                  <button 
-                    onClick={() => setSelectedPerm(selectedPerm === perm.name ? null : perm.name)}
-                    className="w-full bg-[#1F1F1F] rounded-xl p-4 flex items-center justify-between"
-                  >
-                    <div className="text-left">
-                      <div className="font-bold">{perm.name}</div>
-                      <div className="text-gray-500 text-xs">{perm.desc}</div>
-                    </div>
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      perm.status === 'available' ? 'bg-green-500/20 text-green-400' : 
-                      perm.status === 'needs_reauth' ? 'bg-orange-500/20 text-orange-400' : 
-                      'bg-red-500/20 text-red-400'
-                    }`}>
-                      {perm.status.replace('_', ' ')}
-                    </span>
-                  </button>
-                  {selectedPerm === perm.name && (
-                    <div className="bg-[#252525] rounded-xl p-4 mt-2 text-sm">
-                      <p className="text-gray-400 mb-2">How to enable:</p>
-                      <code className="text-[#8F67F5] text-xs">{perm.howTo}</code>
-                    </div>
-                  )}
+                <div key={perm.name} className="bg-[#1F1F1F] rounded-xl p-4 flex items-center justify-between">
+                  <div>
+                    <div className="font-bold">{perm.name}</div>
+                    <div className="text-gray-500 text-xs">{perm.desc}</div>
+                  </div>
+                  <span className={`px-2 py-1 rounded-full text-xs ${
+                    perm.status === 'available' ? 'bg-green-500/20 text-green-400' : 
+                    perm.status === 'needs_reauth' ? 'bg-orange-500/20 text-orange-400' : 
+                    'bg-red-500/20 text-red-400'
+                  }`}>
+                    {perm.status.replace('_', ' ')}
+                  </span>
                 </div>
               ))}
             </div>
@@ -314,7 +271,7 @@ export default function Dashboard() {
                 value={emailSubject}
                 onChange={(e) => setEmailSubject(e.target.value)}
                 placeholder="Subject"
-                className="w-full bg-[#1F1F1F] border border-[#2A2A2A] rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#8F67F2A2A]"
+                className="w-full bg-[#1F1F1F] border border-[#2A2A2A] rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#8F67F5]"
               />
               <textarea
                 value={emailBody}
