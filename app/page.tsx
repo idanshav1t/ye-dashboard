@@ -35,6 +35,8 @@ const memory = [
   { category: 'Dashboard', items: ['GitHub: @idanshav1t', 'Vercel: ye-dashboard.vercel.app'] },
 ]
 
+const frequencies = ['daily', 'weekly', 'monthly', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+
 export default function Dashboard() {
   const [view, setView] = useState<View>('tasks')
   const [tasks, setTasks] = useState<Task[]>([])
@@ -43,7 +45,8 @@ export default function Dashboard() {
   const [emailBody, setEmailBody] = useState('')
   const [sending, setSending] = useState(false)
   const [response, setResponse] = useState('')
-  const [addingTask, setAddingTask] = useState(false)
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [newTask, setNewTask] = useState({ name: '', time: '08:00', frequency: 'daily' })
 
   useEffect(() => {
     fetchTasks()
@@ -86,14 +89,17 @@ export default function Dashboard() {
     setTasks(tasks.filter(t => t.id !== id))
   }
 
-  const handleAddTask = async () => {
-    setAddingTask(true)
-    await fetch('/api/tasks', {
+  const addTask = async () => {
+    if (!newTask.name) return
+    const res = await fetch('/api/tasks', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'New Task', time: '00:00', frequency: 'daily' })
+      body: JSON.stringify(newTask)
     })
-    setAddingTask(false)
+    const created = await res.json()
+    setTasks([...tasks, created])
+    setNewTask({ name: '', time: '08:00', frequency: 'daily' })
+    setShowAddForm(false)
   }
 
   const getStatusColor = (status: string) => {
@@ -120,7 +126,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[#0D0D0D] text-white flex flex-col ios-app">
-      {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-[#1F1F1F] safe-area-top">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8F67F5] to-[#D0C4F2] flex items-center justify-center text-xl">
@@ -137,9 +142,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Main */}
       <main className="flex-1 overflow-y-auto p-4 pb-24">
-        
         {view === 'home' && (
           <div className="grid grid-cols-2 gap-3">
             {navItems.filter(n => n.key !== 'home').map(item => (
@@ -160,18 +163,53 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">Tasks</h2>
               <button 
-                onClick={handleAddTask}
-                disabled={addingTask}
+                onClick={() => setShowAddForm(!showAddForm)}
                 className="bg-[#8F67F5] px-4 py-2 rounded-xl text-sm font-bold"
               >
-                {addingTask ? 'Sending...' : '+ Add Task'}
+                {showAddForm ? '✕' : '+ Add'}
               </button>
             </div>
             
-            {tasks.length === 0 ? (
+            {showAddForm && (
+              <div className="bg-[#1F1F1F] rounded-xl p-4 mb-4 space-y-3">
+                <input
+                  type="text"
+                  value={newTask.name}
+                  onChange={(e) => setNewTask({...newTask, name: e.target.value})}
+                  placeholder="Task name"
+                  className="w-full bg-[#0D0D0D] border border-[#2A2A2A] rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#8F67F5]"
+                />
+                <div className="flex gap-2">
+                  <input
+                    type="time"
+                    value={newTask.time}
+                    onChange={(e) => setNewTask({...newTask, time: e.target.value})}
+                    className="flex-1 bg-[#0D0D0D] border border-[#2A2A2A] rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#8F67F5]"
+                  />
+                  <select
+                    value={newTask.frequency}
+                    onChange={(e) => setNewTask({...newTask, frequency: e.target.value})}
+                    className="flex-1 bg-[#0D0D0D] border border-[#2A2A2A] rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#8F67F5]"
+                  >
+                    {frequencies.map(f => (
+                      <option key={f} value={f}>{f}</option>
+                    ))}
+                  </select>
+                </div>
+                <button 
+                  onClick={addTask}
+                  disabled={!newTask.name}
+                  className="w-full bg-[#8F67F5] py-3 rounded-xl font-bold disabled:opacity-50"
+                >
+                  Add Task
+                </button>
+              </div>
+            )}
+            
+            {tasks.length === 0 && !showAddForm ? (
               <div className="text-center py-12 text-gray-500">
                 <p>No tasks yet</p>
-                <p className="text-sm mt-2 text-gray-400">Tap "+ Add Task" and I'll message you</p>
+                <p className="text-sm mt-2 text-gray-400">Tap "+ Add" to create one</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -293,7 +331,6 @@ export default function Dashboard() {
         )}
       </main>
 
-      {/* Bottom Nav */}
       <nav className="fixed bottom-0 left-0 right-0 bg-[#0D0D0D]/95 backdrop-blur border-t border-[#1F1F1F] safe-area-bottom">
         <div className="flex items-center justify-around py-2">
           {navItems.map(item => (
