@@ -3,9 +3,11 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 0, 0, 0;
-  --background-end-rgb: 0, 0, 0;
+  --bg-main: #FDF9F4;
+  --text-main: #1A1A1A;
+  --accent-purple: #8F67F5;
+  --accent-purple-light: #EBE6F8;
+  --accent-purple-dark: #D0C4F2;
 }
 
 * {
@@ -21,25 +23,14 @@ body {
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb)))
-    rgb(var(--background-start-rgb));
+  background: #FDF9F4;
+  color: #1A1A1A;
+  font-family: 'Heebo', 'Rubik', 'Assistant', sans-serif;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
+/* Hebrew support */
+[lang="he"] {
+  direction: rtl;
 }
 
-::-webkit-scrollbar-track {
-  background: #1f2937;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #4b5563;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
-}
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800&display=swap');

@@ -18,7 +18,6 @@ export default function Dashboard() {
   const [subject, setSubject] = useState('')
   const [body, setBody] = useState('')
   const [sending, setSending] = useState(false)
-  const [log, setLog] = useState<string[]>([])
 
   useEffect(() => {
     fetchStatus()
@@ -39,11 +38,9 @@ export default function Dashboard() {
   const sendEmail = async () => {
     if (!email || !subject || !body) return
     setSending(true)
-    // In production, this would call the VPS API
-    setLog(prev => [...prev, `📧 Sending email to ${email}...`])
     setTimeout(() => {
-      setLog(prev => [...prev, `✅ Email sent!`])
       setSending(false)
+      alert('Email sent! (Demo)')
       setEmail('')
       setSubject('')
       setBody('')
@@ -52,185 +49,137 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-[#FDF9F4] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading Ye...</p>
+          <div className="w-16 h-16 border-4 border-[#8F67F5] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-500">Loading...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-[#FDF9F4] text-[#1A1A1A] relative overflow-hidden">
+      {/* Background Blobs */}
+      <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-[#D0C4F2] opacity-30 rounded-full blur-[100px]"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-[#EBE6F8] opacity-40 rounded-full blur-[80px]"></div>
+        <div className="absolute top-[40%] left-[60%] w-[300px] h-[300px] bg-[#8F67F5] opacity-10 rounded-full blur-[60px]"></div>
+      </div>
+
       {/* Header */}
-      <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-2xl">
-              🖖
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold bg-gradient-400 to-p-to-r from-purpleink-400 bg-clip-text text-transparent">
-                Ye
-              </h1>
-              <p className="text-xs text-gray-500">AI Assistant</p>
-            </div>
+      <header className="relative z-10 flex items-center justify-between px-8 py-6">
+        <div className="flex items-center gap-3">
+          <span className="text-4xl">🖖</span>
+          <div>
+            <h1 className="text-2xl font-bold">Ye</h1>
+            <p className="text-sm text-gray-500">AI Assistant</p>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span>
-            <span className="text-green-400 text-sm font-medium">Online</span>
-          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-green-500"></span>
+          <span className="text-green-600 text-sm font-medium">Online</span>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <StatCard icon="🧠" label="Model" value={data?.model || 'MiniMax M2.5'} />
+      {/* Main Content */}
+      <main className="relative z-10 max-w-3xl mx-auto px-8 py-12">
+        
+        {/* Hero Section */}
+        <div className="text-center mb-16">
+          <p className="text-lg text-gray-500 mb-2">Your AI Assistant</p>
+          <h2 className="text-4xl md:text-5xl font-extrabold mb-4">
+            Welcome to <span className="text-[#8F67F5]">Ye</span>
+          </h2>
+          <p className="text-gray-600 max-w-lg mx-auto">
+            A powerful AI assistant helping you with creative work, research, automation, and more.
+          </p>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+          <StatCard icon="🧠" label={data?.model || 'Model'} value="MiniMax M2.5" />
           <StatCard icon="⏱️" label="Uptime" value={data?.uptime || '3h 42m'} />
           <StatCard icon="💬" label="Messages" value={data?.messages?.toString() || '247'} />
           <StatCard icon="💰" label="Cost" value={data?.usage?.cost || '$0.00'} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Quick Actions */}
-            <section className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                ⚡ Quick Actions
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <ActionButton icon="📧" label="Send Email" onClick={() => document.getElementById('email-section')?.scrollIntoView({ behavior: 'smooth' })} />
-                <ActionButton icon="🔍" label="Research" />
-                <ActionButton icon="🧠" label="Memory" />
-                <ActionButton icon="📁" label="Files" />
-              </div>
-            </section>
-
-            {/* Skills */}
-            <section className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                🧩 Skills
-                <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full">
-                  {data?.skills?.length || 0} installed
-                </span>
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {data?.skills?.map((skill: any) => (
-                  <div key={skill.name} className="bg-gray-800 rounded px-4 py-2 flex items-lg-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${skill.status === 'connected' ? 'bg-green-500' : 'bg-gray-500'}`}></span>
-                    <span>{skill.name}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Email Section */}
-            <section id="email-section" className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                📧 Send Email
-              </h2>
-              <div className="space-y-4">
-                <input
-                  type="email"
-                  placeholder="To: email@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500"
-                />
-                <input
-                  type="text"
-                  placeholder="Subject"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500"
-                />
-                <textarea
-                  placeholder="Message..."
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
-                  rows={4}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-purple-500 resize-none"
-                />
-                <button
-                  onClick={sendEmail}
-                  disabled={sending || !email || !subject}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition"
-                >
-                  {sending ? 'Sending...' : 'Send Email ✈️'}
-                </button>
-              </div>
-            </section>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-8">
-            {/* Activity Log */}
-            <section className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                📜 Activity Log
-              </h2>
-              <div className="space-y-2 text-sm text-gray-400 max-h-64 overflow-y-auto">
-                <p className="text-gray-500">No recent activity</p>
-              </div>
-            </section>
-
-            {/* System Info */}
-            <section className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
-              <h2 className="text-lg font-semibold mb-4">ℹ️ System Info</h2>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Platform</span>
-                  <span>VPS (Linux)</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Timezone</span>
-                  <span>GMT+2</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Channel</span>
-                  <span>Telegram</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Connected</span>
-                  <span>Mar 1, 2026</span>
-                </div>
-              </div>
-            </section>
-
-            {/* Cron Jobs */}
-            <section className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
-              <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                ⏰ Scheduled Tasks
-              </h2>
-              <div className="space-y-3">
-                <div className="bg-gray-800 rounded-lg p-3 flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-sm">Morning Report</p>
-                    <p className="text-xs text-gray-500">Every day at 8:00 AM</p>
-                  </div>
-                  <button className="w-10 h-6 bg-green-500 rounded-full relative">
-                    <span className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full"></span>
-                  </button>
-                </div>
-                <div className="bg-gray-800 rounded-lg p-3 flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-sm">Weather Check</p>
-                    <p className="text-xs text-gray-500">Every day at 7:00 AM</p>
-                  </div>
-                  <button className="w-10 h-6 bg-gray-600 rounded-full relative">
-                    <span className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full"></span>
-                  </button>
-                </div>
-              </div>
-              <button className="w-full mt-4 border border-dashed border-gray-700 rounded-lg py-3 text-gray-500 hover:border-gray-500 hover:text-gray-400 transition">
-                + Add Scheduled Task
-              </button>
-            </section>
+        {/* Quick Actions */}
+        <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 mb-8 shadow-sm">
+          <h3 className="text-xl font-bold mb-6">⚡ Quick Actions</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <ActionButton icon="📧" label="Send Email" />
+            <ActionButton icon="🔍" label="Research" />
+            <ActionButton icon="🧠" label="Memory" />
+            <ActionButton icon="📁" label="Files" />
           </div>
         </div>
+
+        {/* Skills */}
+        <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 mb-8 shadow-sm">
+          <h3 className="text-xl font-bold mb-4">🧩 Skills</h3>
+          <div className="flex flex-wrap gap-2">
+            {data?.skills?.map((skill: any) => (
+              <span 
+                key={skill.name} 
+                className="px-4 py-2 bg-[#EBE6F8] text-[#1A1A1A] rounded-full text-sm font-medium"
+              >
+                {skill.name}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Email Form */}
+        <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 mb-8 shadow-sm">
+          <h3 className="text-xl font-bold mb-6">📧 Send Email</h3>
+          <div className="space-y-4">
+            <input
+              type="email"
+              placeholder="To: email@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-[#FDF9F4] border border-[#EBE6F8] rounded-2xl px-5 py-4 text-[#1A1A1A] placeholder-gray-400 focus:outline-none focus:border-[#8F67F5] transition"
+            />
+            <input
+              type="text"
+              placeholder="Subject"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="w-full bg-[#FDF9F4] border border-[#EBE6F8] rounded-2xl px-5 py-4 text-[#1A1A1A] placeholder-gray-400 focus:outline-none focus:border-[#8F67F5] transition"
+            />
+            <textarea
+              placeholder="Message..."
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              rows={4}
+              className="w-full bg-[#FDF9F4] border border-[#EBE6F8] rounded-2xl px-5 py-4 text-[#1A1A1A] placeholder-gray-400 focus:outline-none focus:border-[#8F67F5] transition resize-none"
+            />
+            <button
+              onClick={sendEmail}
+              disabled={sending || !email || !subject}
+              className="w-full bg-[#8F67F5] text-white font-bold py-4 rounded-2xl hover:opacity-90 transition disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {sending ? 'Sending...' : 'Send Email'} <span>+</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Scheduled Tasks */}
+        <div className="bg-white/60 backdrop-blur-sm rounded-3xl p-8 mb-8 shadow-sm">
+          <h3 className="text-xl font-bold mb-4">⏰ Scheduled Tasks</h3>
+          <div className="space-y-3">
+            <TaskRow name="Morning Report" time="Every day at 8:00 AM" enabled={true} />
+            <TaskRow name="Weather Check" time="Every day at 7:00 AM" enabled={false} />
+          </div>
+        </div>
+
+        {/* Info */}
+        <div className="text-center text-gray-500 text-sm">
+          <p>Platform: VPS (Linux) • Timezone: GMT+2 • Channel: Telegram</p>
+          <p className="mt-1">Connected: March 1, 2026</p>
+        </div>
+
       </main>
     </div>
   )
@@ -238,24 +187,33 @@ export default function Dashboard() {
 
 function StatCard({ icon, label, value }: { icon: string; label: string; value: string }) {
   return (
-    <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-      <div className="flex items-center gap-2 mb-2">
-        <span>{icon}</span>
-        <span className="text-gray-400 text-sm">{label}</span>
-      </div>
-      <p className="text-xl font-bold truncate">{value}</p>
+    <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 text-center shadow-sm">
+      <div className="text-2xl mb-1">{icon}</div>
+      <p className="text-xs text-gray-500">{label}</p>
+      <p className="font-bold text-sm truncate">{value}</p>
     </div>
   )
 }
 
-function ActionButton({ icon, label, onClick }: { icon: string; label: string; onClick?: () => void }) {
+function ActionButton({ icon, label }: { icon: string; label: string }) {
   return (
-    <button 
-      onClick={onClick}
-      className="bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-gray-600 rounded-xl p-4 flex flex-col items-center gap-2 transition-all hover:scale-105"
-    >
+    <button className="bg-[#EBE6F8] hover:bg-[#D0C4F2] rounded-2xl p-4 flex flex-col items-center gap-2 transition hover:scale-105">
       <span className="text-2xl">{icon}</span>
-      <span className="text-sm text-gray-300">{label}</span>
+      <span className="text-sm font-medium">{label}</span>
     </button>
+  )
+}
+
+function TaskRow({ name, time, enabled }: { name: string; time: string; enabled: boolean }) {
+  return (
+    <div className="flex items-center justify-between bg-[#FDF9F4] rounded-xl p-4">
+      <div>
+        <p className="font-medium">{name}</p>
+        <p className="text-xs text-gray-500">{time}</p>
+      </div>
+      <button className={`w-12 h-6 rounded-full relative transition ${enabled ? 'bg-[#8F67F5]' : 'bg-gray-300'}`}>
+        <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition ${enabled ? 'right-1' : 'left-1'}`}></span>
+      </button>
+    </div>
   )
 }
