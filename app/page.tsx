@@ -1,49 +1,88 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 type View = 'home' | 'skills' | 'memory' | 'permissions' | 'email' | 'tasks'
+
+interface Task {
+  id: number
+  name: string
+  time: string
+  frequency: string
+  enabled: boolean
+}
 
 const skills = [
   { name: 'Gmail', status: 'working', desc: 'Read & send emails' },
   { name: 'Blender', status: 'installed', desc: 'Python scripts, guidance only' },
-  { name: 'Memory', status: 'working', desc: 'I remember everything between sessions' },
-  { name: 'Deep Research', status: 'installed', desc: 'Web research capability' },
+  { name: 'Memory', status: 'working', desc: 'I remember everything' },
+  { name: 'Deep Research', status: 'installed', desc: 'Web research' },
   { name: 'YouTube', status: 'installed', desc: 'Transcript fetching' },
-  { name: 'DDG Search', status: 'installed', desc: 'DuckDuckGo CLI' },
 ]
 
-const possiblePermissions = [
-  { name: 'Control Blender', status: 'needs_local', desc: 'Requires OpenClaw on your machine' },
-  { name: 'Browser Control', status: 'needs_extension', desc: 'Chrome extension not connected' },
-  { name: 'Calendar', status: 'needs_reauth', desc: 'OAuth scopes expired' },
-  { name: 'Drive', status: 'available', desc: 'Can access if needed' },
-  { name: 'Web Search', status: 'needs_api', desc: 'Brave Search API not connected ($5/mo)' },
+const permissions = [
+  { 
+    name: 'Control Blender', 
+    status: 'needs_local', 
+    desc: 'Requires OpenClaw on your machine',
+    howTo: 'Install OpenClaw locally: curl -fsSL https://openclaw.ai/install.sh | bash'
+  },
+  { 
+    name: 'Browser Control', 
+    status: 'needs_extension', 
+    desc: 'Chrome extension not connected',
+    howTo: 'Install "OpenClaw Browser Relay" in Chrome, configure port 18789, token 7ba0b6ed8016cf8ce4e69aee165efe7750005583e8832426'
+  },
+  { 
+    name: 'Calendar', 
+    status: 'needs_reauth', 
+    desc: 'OAuth scopes expired',
+    howTo: 'Send me "reconnect calendar" and I will guide you through re-authenticating'
+  },
+  { 
+    name: 'Drive', 
+    status: 'available', 
+    desc: 'Can access if needed',
+    howTo: 'Just ask me to access Drive and I can do it'
+  },
+  { 
+    name: 'Web Search', 
+    status: 'needs_api', 
+    desc: 'Brave Search API not connected',
+    howTo: 'Get free API at brave.com/search/api ($5/month, 1000 searches free)'
+  },
 ]
 
 const memory = [
-  { category: 'Identity', items: ['Name: Ye', 'Vibe: Casual & professional', 'Emoji: 🖖'] },
-  { category: 'You', items: ['Creative: After Effects, VFX, Motion Design', '3D: Blender (current), C4D, UE (past)', 'AI Video: Used Higgsfield for TV commercials', 'Music: FL Studio for fun', 'Website: idanshavit.com'] },
-  { category: 'Setup', items: ['Timezone: GMT+2', 'Platform: VPS (Linux)', 'Channel: Telegram', 'Model: MiniMax M2.5'] },
-  { category: 'Dashboard', items: ['GitHub: @idanshav1t', 'Vercel: ye-dashboard.vercel.app', 'Gmail: idanshavit100@gmail.com'] },
+  { category: 'Identity', items: ['Name: Ye', 'Emoji: 🖖'] },
+  { category: 'You', items: ['After Effects, VFX, Motion', 'Blender, C4D, Unreal', 'Higgsfield AI commercials', 'FL Studio'] },
+  { category: 'Setup', items: ['GMT+2', 'VPS Linux', 'Telegram', 'MiniMax M2.5'] },
+  { category: 'Dashboard', items: ['GitHub: @idanshav1t', 'Vercel: ye-dashboard.vercel.app'] },
 ]
 
 export default function Dashboard() {
-  const [view, setView] = useState<View>('home')
+  const [view, setView] = useState<View>('tasks')
+  const [tasks, setTasks] = useState<Task[]>([])
   const [emailTo, setEmailTo] = useState('')
   const [emailSubject, setEmailSubject] = useState('')
   const [emailBody, setEmailBody] = useState('')
   const [sending, setSending] = useState(false)
   const [response, setResponse] = useState('')
+  const [selectedPerm, setSelectedPerm] = useState<string | null>(null)
 
-  const navItems = [
-    { key: 'home', icon: '◉', label: 'Home' },
-    { key: 'skills', icon: '⚡', label: 'Skills' },
-    { key: 'memory', icon: '🧠', label: 'Memory' },
-    { key: 'permissions', icon: '🔐', label: 'Access' },
-    { key: 'email', icon: '✉️', label: 'Email' },
-    { key: 'tasks', icon: '✓', label: 'Tasks' },
-  ]
+  useEffect(() => {
+    fetchTasks()
+  }, [])
+
+  const fetchTasks = async () => {
+    try {
+      const res = await fetch('/api/tasks')
+      const data = await res.json()
+      setTasks(data)
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   const sendEmail = async () => {
     if (!emailTo || !emailSubject) return
@@ -55,6 +94,21 @@ export default function Dashboard() {
     setEmailSubject('')
     setEmailBody('')
     setTimeout(() => setResponse(''), 3000)
+  }
+
+  const toggleTask = async (task: Task) => {
+    const updated = { ...task, enabled: !task.enabled }
+    await fetch('/api/tasks', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updated)
+    })
+    setTasks(tasks.map(t => t.id === task.id ? updated : t))
+  }
+
+  const deleteTask = async (id: number) => {
+    await fetch(`/api/tasks?id=${id}`, { method: 'DELETE' })
+    setTasks(tasks.filter(t => t.id !== id))
   }
 
   const getStatusColor = (status: string) => {
@@ -70,9 +124,18 @@ export default function Dashboard() {
     }
   }
 
+  const navItems = [
+    { key: 'home', icon: '◉', label: 'Home' },
+    { key: 'tasks', icon: '✓', label: 'Tasks' },
+    { key: 'skills', icon: '⚡', label: 'Skills' },
+    { key: 'memory', icon: '🧠', label: 'Memory' },
+    { key: 'permissions', icon: '🔐', label: 'Access' },
+    { key: 'email', icon: '✉️', label: 'Email' },
+  ]
+
   return (
     <div className="min-h-screen bg-[#0D0D0D] text-white flex flex-col ios-app">
-      {/* Header - Mobile */}
+      {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-[#1F1F1F] safe-area-top">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#8F67F5] to-[#D0C4F2] flex items-center justify-center text-xl">
@@ -89,20 +152,67 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Main */}
       <main className="flex-1 overflow-y-auto p-4 pb-24">
+        
         {view === 'home' && (
           <div className="grid grid-cols-2 gap-3">
             {navItems.filter(n => n.key !== 'home').map(item => (
               <button
                 key={item.key}
                 onClick={() => setView(item.key as View)}
-                className="bg-[#1F1F1F] hover:bg-[#252525] border border-[#2A2A2A] rounded-2xl p-6 text-left transition-all active:scale-95"
+                className="bg-[#1F1F1F] border border-[#2A2A2A] rounded-2xl p-6 text-left active:scale-95"
               >
                 <div className="text-3xl mb-3">{item.icon}</div>
                 <div className="font-bold">{item.label}</div>
               </button>
             ))}
+          </div>
+        )}
+
+        {view === 'tasks' && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Tasks</h2>
+              <button 
+                onClick={() => alert('Message me on Telegram: "I want to add a new task" and I will help you create it!')}
+                className="bg-[#8F67F5] px-4 py-2 rounded-xl text-sm font-bold"
+              >
+                + Add Task
+              </button>
+            </div>
+            
+            {tasks.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <p className="mb-4">No tasks yet</p>
+                <button 
+                  onClick={() => alert('Message me on Telegram: "add task"')}
+                  className="text-[#8F67F5]"
+                >
+                  Ask Ye to add one →
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {tasks.map(task => (
+                  <div key={task.id} className="bg-[#1F1F1F] rounded-xl p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-bold">{task.name}</span>
+                      <button 
+                        onClick={() => toggleTask(task)}
+                        className={`w-12 h-6 rounded-full transition ${task.enabled ? 'bg-[#8F67F5]' : 'bg-[#2A2A2A]'}`}
+                      >
+                        <span className={`block w-5 h-5 bg-white rounded-full transition-transform ${task.enabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between text-sm text-gray-400">
+                      <span>{task.time} • {task.frequency}</span>
+                      <button onClick={() => deleteTask(task.id)} className="text-red-500">Delete</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -145,19 +255,30 @@ export default function Dashboard() {
           <div>
             <h2 className="text-xl font-bold mb-4">Permissions</h2>
             <div className="space-y-2">
-              {possiblePermissions.map(perm => (
-                <div key={perm.name} className="bg-[#1F1F1F] rounded-xl p-4 flex items-center justify-between">
-                  <div>
-                    <div className="font-bold">{perm.name}</div>
-                    <div className="text-gray-500 text-xs">{perm.desc}</div>
-                  </div>
-                  <span className={`px-2 py-1 rounded-full text-xs ${
-                    perm.status === 'available' ? 'bg-green-500/20 text-green-400' : 
-                    perm.status === 'needs_reauth' ? 'bg-orange-500/20 text-orange-400' : 
-                    'bg-red-500/20 text-red-400'
-                  }`}>
-                    {perm.status.replace('_', ' ')}
-                  </span>
+              {permissions.map(perm => (
+                <div key={perm.name}>
+                  <button 
+                    onClick={() => setSelectedPerm(selectedPerm === perm.name ? null : perm.name)}
+                    className="w-full bg-[#1F1F1F] rounded-xl p-4 flex items-center justify-between"
+                  >
+                    <div className="text-left">
+                      <div className="font-bold">{perm.name}</div>
+                      <div className="text-gray-500 text-xs">{perm.desc}</div>
+                    </div>
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      perm.status === 'available' ? 'bg-green-500/20 text-green-400' : 
+                      perm.status === 'needs_reauth' ? 'bg-orange-500/20 text-orange-400' : 
+                      'bg-red-500/20 text-red-400'
+                    }`}>
+                      {perm.status.replace('_', ' ')}
+                    </span>
+                  </button>
+                  {selectedPerm === perm.name && (
+                    <div className="bg-[#252525] rounded-xl p-4 mt-2 text-sm">
+                      <p className="text-gray-400 mb-2">How to enable:</p>
+                      <code className="text-[#8F67F5] text-xs">{perm.howTo}</code>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -192,7 +313,7 @@ export default function Dashboard() {
               <button
                 onClick={sendEmail}
                 disabled={sending || !emailTo || !emailSubject}
-                className="w-full bg-[#8F67F5] py-4 rounded-xl font-bold disabled:opacity-50 active:scale-95 transition"
+                className="w-full bg-[#8F67F5] py-4 rounded-xl font-bold disabled:opacity-50 active:scale-95"
               >
                 {sending ? 'Sending...' : 'Send'}
               </button>
@@ -200,39 +321,16 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-
-        {view === 'tasks' && (
-          <div>
-            <h2 className="text-xl font-bold mb-4">Tasks</h2>
-            <div className="space-y-2">
-              {[
-                { name: 'Morning Report', time: '8:00 AM', enabled: true },
-                { name: 'Weather', time: '7:00 AM', enabled: true },
-                { name: 'Calendar Summary', time: '9:00 AM', enabled: false },
-              ].map((task, i) => (
-                <div key={i} className="bg-[#1F1F1F] rounded-xl p-4 flex items-center justify-between">
-                  <div>
-                    <div className="font-bold">{task.name}</div>
-                    <div className="text-gray-500 text-xs">{task.time}</div>
-                  </div>
-                  <button className={`w-12 h-6 rounded-full transition ${task.enabled ? 'bg-[#8F67F5]' : 'bg-[#2A2A2A]'}`}>
-                    <span className={`block w-5 h-5 bg-white rounded-full transition-transform ${task.enabled ? 'translate-x-6' : 'translate-x-0.5'}`} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </main>
 
-      {/* Bottom Nav - Mobile */}
+      {/* Bottom Nav */}
       <nav className="fixed bottom-0 left-0 right-0 bg-[#0D0D0D]/95 backdrop-blur border-t border-[#1F1F1F] safe-area-bottom">
         <div className="flex items-center justify-around py-2">
           {navItems.map(item => (
             <button
               key={item.key}
               onClick={() => setView(item.key as View)}
-              className={`flex flex-col items-center gap-1 px-4 py-2 rounded-xl transition-all ${
+              className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all ${
                 view === item.key ? 'text-[#8F67F5]' : 'text-gray-500'
               }`}
             >
