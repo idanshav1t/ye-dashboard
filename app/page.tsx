@@ -69,6 +69,7 @@ export default function Dashboard() {
   const [sending, setSending] = useState(false)
   const [response, setResponse] = useState('')
   const [selectedPerm, setSelectedPerm] = useState<string | null>(null)
+  const [addingTask, setAddingTask] = useState(false)
 
   useEffect(() => {
     fetchTasks()
@@ -109,6 +110,22 @@ export default function Dashboard() {
   const deleteTask = async (id: number) => {
     await fetch(`/api/tasks?id=${id}`, { method: 'DELETE' })
     setTasks(tasks.filter(t => t.id !== id))
+  }
+
+  const handleAddTask = async () => {
+    setAddingTask(true)
+    // Send task creation request to API which will notify the user
+    await fetch('/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        name: 'New Task Request',
+        time: '00:00',
+        frequency: 'daily',
+        status: 'pending'
+      })
+    })
+    setAddingTask(false)
   }
 
   const getStatusColor = (status: string) => {
@@ -175,22 +192,18 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">Tasks</h2>
               <button 
-                onClick={() => alert('Message me on Telegram: "I want to add a new task" and I will help you create it!')}
+                onClick={handleAddTask}
+                disabled={addingTask}
                 className="bg-[#8F67F5] px-4 py-2 rounded-xl text-sm font-bold"
               >
-                + Add Task
+                {addingTask ? 'Sending...' : '+ Add Task'}
               </button>
             </div>
             
             {tasks.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
-                <p className="mb-4">No tasks yet</p>
-                <button 
-                  onClick={() => alert('Message me on Telegram: "add task"')}
-                  className="text-[#8F67F5]"
-                >
-                  Ask Ye to add one →
-                </button>
+                <p>No tasks yet</p>
+                <p className="text-sm mt-2 text-gray-400">Tap "+ Add Task" and I'll message you</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -301,7 +314,7 @@ export default function Dashboard() {
                 value={emailSubject}
                 onChange={(e) => setEmailSubject(e.target.value)}
                 placeholder="Subject"
-                className="w-full bg-[#1F1F1F] border border-[#2A2A2A] rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#8F67F5]"
+                className="w-full bg-[#1F1F1F] border border-[#2A2A2A] rounded-xl px-4 py-3 text-base focus:outline-none focus:border-[#8F67F2A2A]"
               />
               <textarea
                 value={emailBody}
