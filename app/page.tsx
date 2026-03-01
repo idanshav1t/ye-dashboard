@@ -1,48 +1,73 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 
-type View = 'home' | 'email' | 'tasks' | 'skills' | 'memory' | 'files'
+type View = 'home' | 'skills' | 'memory' | 'permissions' | 'email' | 'tasks'
+
+const skills = [
+  { name: 'Gmail', status: 'working', desc: 'Read & send emails' },
+  { name: 'Blender', status: 'installed', desc: 'Python scripts, guidance only' },
+  { name: 'Memory', status: 'working', desc: 'I remember everything between sessions' },
+  { name: 'Deep Research', status: 'installed', desc: 'Web research capability' },
+  { name: 'YouTube', status: 'installed', desc: 'Transcript fetching' },
+  { name: 'DDG Search', status: 'installed', desc: 'DuckDuckGo CLI' },
+]
+
+const possiblePermissions = [
+  { name: 'Control Blender', status: 'needs_local', desc: 'Requires OpenClaw on your machine' },
+  { name: 'Browser Control', status: 'needs_extension', desc: 'Chrome extension not connected' },
+  { name: 'Calendar', status: 'needs_reauth', desc: 'OAuth scopes expired' },
+  { name: 'Drive', status: 'available', desc: 'Can access if needed' },
+  { name: 'Web Search', status: 'needs_api', desc: 'Brave Search API not connected ($5/mo)' },
+]
+
+const memory = [
+  { category: 'Identity', items: ['Name: Ye', 'Vibe: Casual & professional', 'Emoji: 🖖'] },
+  { category: 'You', items: ['Creative: After Effects, VFX, Motion Design', '3D: Blender (current), C4D, UE (past)', 'AI Video: Used Higgsfield for TV commercials', 'Music: FL Studio for fun', 'Website: idanshavit.com'] },
+  { category: 'Setup', items: ['Timezone: GMT+2', 'Platform: VPS (Linux)', 'Channel: Telegram', 'Model: MiniMax M2.5'] },
+  { category: 'Dashboard', items: ['GitHub: @idanshav1t', 'Vercel: ye-dashboard.vercel.app', 'Gmail: idanshavit100@gmail.com'] },
+]
 
 export default function Dashboard() {
   const [view, setView] = useState<View>('home')
-  const [command, setCommand] = useState('')
-  const [response, setResponse] = useState('')
   const [emailTo, setEmailTo] = useState('')
   const [emailSubject, setEmailSubject] = useState('')
   const [emailBody, setEmailBody] = useState('')
   const [sending, setSending] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [response, setResponse] = useState('')
 
-  const quickActions = [
-    { key: 'e', label: 'Email', icon: '✉️', view: 'email' as View },
-    { key: 't', label: 'Tasks', icon: '✓', view: 'tasks' as View },
-    { key: 's', label: 'Skills', icon: '⚡', view: 'skills' as View },
-    { key: 'm', label: 'Memory', icon: '🧠', view: 'memory' as View },
-    { key: 'f', label: 'Files', icon: '📁', view: 'files' as View },
+  const navItems = [
+    { key: 'home', icon: '◉', label: 'Home' },
+    { key: 'skills', icon: '⚡', label: 'Skills' },
+    { key: 'memory', icon: '🧠', label: 'Memory' },
+    { key: 'permissions', icon: '🔐', label: 'Access' },
+    { key: 'email', icon: '✉️', label: 'Email' },
+    { key: 'tasks', icon: '✓', label: 'Tasks' },
   ]
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setView('home')
-      if (e.key === 'e' && !e.metaKey && !e.ctrlKey && document.activeElement?.tagName !== 'INPUT') {
-        setView('email')
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
 
   const sendEmail = async () => {
     if (!emailTo || !emailSubject) return
     setSending(true)
     await new Promise(r => setTimeout(r, 1200))
     setSending(false)
-    setResponse('✓ Email sent')
+    setResponse('✓ Sent')
     setEmailTo('')
     setEmailSubject('')
     setEmailBody('')
     setTimeout(() => setResponse(''), 3000)
+  }
+
+  const getStatusColor = (status: string) => {
+    switch(status) {
+      case 'working': return 'bg-green-500'
+      case 'installed': return 'bg-yellow-500'
+      case 'available': return 'bg-green-500'
+      case 'needs_local': return 'bg-red-500'
+      case 'needs_extension': return 'bg-red-500'
+      case 'needs_reauth': return 'bg-orange-500'
+      case 'needs_api': return 'bg-red-500'
+      default: return 'bg-gray-500'
+    }
   }
 
   return (
@@ -53,36 +78,29 @@ export default function Dashboard() {
           🖖
         </div>
         
-        <nav className="flex flex-col gap-4">
-          {quickActions.map(action => (
+        <nav className="flex flex-col gap-3">
+          {navItems.map(item => (
             <button
-              key={action.key}
-              onClick={() => setView(action.view)}
+              key={item.key}
+              onClick={() => setView(item.key as View)}
               className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-all duration-200 ${
-                view === action.view 
+                view === item.key 
                   ? 'bg-[#8F67F5] shadow-lg shadow-[#8F67F5]/30' 
                   : 'hover:bg-[#1F1F1F]'
               }`}
+              title={item.label}
             >
-              {action.icon}
+              {item.icon}
             </button>
           ))}
         </nav>
 
-        <div className="mt-auto flex flex-col gap-4">
-          <button 
-            onClick={() => setView('home')}
-            className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl transition-all ${
-              view === 'home' ? 'bg-[#1F1F1F]' : 'hover:bg-[#1F1F1F]'
-            }`}
-          >
-            ◉
-          </button>
+        <div className="mt-auto">
           <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* Main */}
       <main className="flex-1 p-8 overflow-auto">
         {/* Header */}
         <header className="flex items-center justify-between mb-12">
@@ -90,48 +108,77 @@ export default function Dashboard() {
             <h1 className="text-3xl font-bold">Ye</h1>
             <p className="text-gray-500">AI Assistant • Online</p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <span className="px-3 py-1 bg-[#1F1F1F] rounded-full text-sm">M2.5</span>
-            <span className="px-3 py-1 bg-[#1F1F1F] rounded-full text-sm">3h 42m</span>
+            <span className="px-3 py-1 bg-[#1F1F1F] rounded-full text-sm">3h 48m</span>
           </div>
         </header>
 
-        {/* Command Input */}
-        <div className="mb-12">
-          <div className="relative">
-            <input
-              ref={inputRef}
-              type="text"
-              value={command}
-              onChange={(e) => setCommand(e.target.value)}
-              placeholder="Type a command..."
-              className="w-full bg-[#1F1F1F] border border-[#2A2A2A] rounded-2xl px-6 py-4 text-lg focus:outline-none focus:border-[#8F67F5] transition-all"
-            />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">
-              ⌘K
-            </span>
-          </div>
-        </div>
-
-        {/* Views */}
         {view === 'home' && (
-          <div className="grid grid-cols-3 gap-6">
-            {quickActions.map(action => (
-              <button
-                key={action.key}
-                onClick={() => setView(action.view)}
-                className="bg-[#1F1F1F] hover:bg-[#252525] border border-[#2A2A2A] rounded-2xl p-8 text-left transition-all hover:scale-[1.02] group"
-              >
-                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">{action.icon}</div>
-                <div className="font-bold text-lg">{action.label}</div>
-                <div className="text-gray-500 text-sm mt-1">Press {action.key}</div>
-              </button>
-            ))}
+          <div className="grid grid-cols-2 gap-6">
+            <HomeCard icon="⚡" title="Skills" value="6 installed" onClick={() => setView('skills')} />
+            <HomeCard icon="🧠" title="Memory" value="Working" onClick={() => setView('memory')} />
+            <HomeCard icon="🔐" title="Permissions" value="Limited" onClick={() => setView('permissions')} />
+            <HomeCard icon="✉️" title="Email" value="Connected" onClick={() => setView('email')} />
+          </div>
+        )}
+
+        {view === 'skills' && (
+          <div>
+            <h2 className="text-2xl font-bold mb-8">Skills Status</h2>
+            <div className="space-y-3">
+              {skills.map(skill => (
+                <div key={skill.name} className="bg-[#1F1F1F] rounded-xl p-5 flex items-center justify-between">
+                  <div>
+                    <div className="font-bold">{skill.name}</div>
+                    <div className="text-gray-500 text-sm">{skill.desc}</div>
+                  </div>
+                  <div className={`w-3 h-3 rounded-full ${getStatusColor(skill.status)}`} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {view === 'memory' && (
+          <div>
+            <h2 className="text-2xl font-bold mb-8">What I Know About You</h2>
+            <div className="grid grid-cols-2 gap-6">
+              {memory.map(section => (
+                <div key={section.category} className="bg-[#1F1F1F] rounded-xl p-6">
+                  <h3 className="text-[#8F67F5] font-bold mb-4">{section.category}</h3>
+                  <ul className="space-y-2 text-gray-300">
+                    {section.items.map((item, i) => (
+                      <li key={i}>• {item}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {view === 'permissions' && (
+          <div>
+            <h2 className="text-2xl font-bold mb-8">Permissions & Future Access</h2>
+            <div className="space-y-3">
+              {possiblePermissions.map(perm => (
+                <div key={perm.name} className="bg-[#1F1F1F] rounded-xl p-5 flex items-center justify-between">
+                  <div>
+                    <div className="font-bold">{perm.name}</div>
+                    <div className="text-gray-500 text-sm">{perm.desc}</div>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs ${getStatusColor(perm.status) === 'bg-green-500' ? 'bg-green-500/20 text-green-400' : getStatusColor(perm.status) === 'bg-orange-500' ? 'bg-orange-500/20 text-orange-400' : 'bg-red-500/20 text-red-400'}`}>
+                    {perm.status.replace('_', ' ')}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         {view === 'email' && (
-          <div className="max-w-2xl">
+          <div className="max-w-xl">
             <h2 className="text-2xl font-bold mb-8">Send Email</h2>
             <div className="space-y-4">
               <input
@@ -168,13 +215,13 @@ export default function Dashboard() {
         )}
 
         {view === 'tasks' && (
-          <div className="max-w-2xl">
+          <div>
             <h2 className="text-2xl font-bold mb-8">Scheduled Tasks</h2>
             <div className="space-y-3">
               {[
                 { name: 'Morning Report', time: '8:00 AM', enabled: true },
                 { name: 'Weather', time: '7:00 AM', enabled: true },
-                { name: 'Calendar', time: '9:00 AM', enabled: false },
+                { name: 'Calendar Summary', time: '9:00 AM', enabled: false },
               ].map((task, i) => (
                 <div key={i} className="bg-[#1F1F1F] rounded-xl p-5 flex items-center justify-between">
                   <div>
@@ -189,49 +236,17 @@ export default function Dashboard() {
             </div>
           </div>
         )}
-
-        {view === 'skills' && (
-          <div>
-            <h2 className="text-2xl font-bold mb-8">Skills</h2>
-            <div className="flex flex-wrap gap-3">
-              {['Gmail', 'Blender', 'Memory', 'Deep Research', 'YouTube', 'GitHub', 'Calendar'].map(skill => (
-                <span key={skill} className="px-5 py-2 bg-[#1F1F1F] rounded-full text-sm">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {view === 'memory' && (
-          <div>
-            <h2 className="text-2xl font-bold mb-8">Memory</h2>
-            <div className="bg-[#1F1F1F] rounded-2xl p-6">
-              <p className="text-gray-400">Your AI remembers:</p>
-              <ul className="mt-4 space-y-2 text-gray-300">
-                <li>• You're in GMT+2</li>
-                <li>• You work with After Effects, Blender, UE5</li>
-                <li>• You've made commercials with Higgsfield AI</li>
-                <li>• Your website is idanshavit.com</li>
-              </ul>
-            </div>
-          </div>
-        )}
-
-        {view === 'files' && (
-          <div>
-            <h2 className="text-2xl font-bold mb-8">Files</h2>
-            <div className="space-y-2">
-              {['robot_script.py', 'YE.md', 'memory/', 'skills/'].map(file => (
-                <div key={file} className="bg-[#1F1F1F] rounded-lg p-4 flex items-center gap-3">
-                  <span>📄</span>
-                  <span>{file}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </main>
     </div>
+  )
+}
+
+function HomeCard({ icon, title, value, onClick }: { icon: string; title: string; value: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="bg-[#1F1F1F] hover:bg-[#252525] border border-[#2A2A2A] rounded-2xl p-8 text-left transition-all hover:scale-[1.02]">
+      <div className="text-4xl mb-4">{icon}</div>
+      <div className="font-bold text-lg">{title}</div>
+      <div className="text-gray-500">{value}</div>
+    </button>
   )
 }
